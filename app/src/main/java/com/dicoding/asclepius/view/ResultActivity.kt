@@ -1,5 +1,6 @@
 package com.dicoding.asclepius.view
 
+import android.net.Uri
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import com.dicoding.asclepius.R
@@ -10,10 +11,15 @@ class ResultActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_result)
+        binding = ActivityResultBinding.inflate(layoutInflater)
+        setContentView(binding.root)
 
         // TODO: Menampilkan hasil gambar, prediksi, dan confidence score.
+        val prediction = intent.getStringExtra("PREDICTION")
+        val confidenceScore = intent.getFloatExtra("CONFIDENCE_SCORE", 0.0f) * 100
+        val imageUri = intent.getStringExtra("IMAGE_URI")
+
+        binding.resultText.text = getString(R.string.result_text, prediction, confidenceScore)
+        binding.resultImage.setImageURI(Uri.parse(imageUri))
     }
-
-
 }

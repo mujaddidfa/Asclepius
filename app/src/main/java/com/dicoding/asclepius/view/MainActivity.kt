@@ -8,19 +8,43 @@ import android.util.Log
 import android.widget.Toast
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
+import com.dicoding.asclepius.R
 import com.dicoding.asclepius.databinding.ActivityMainBinding
+import com.dicoding.asclepius.helper.ImageClassifierHelper
+import org.tensorflow.lite.task.vision.classifier.Classifications
 
 class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding
 
     private var currentImageUri: Uri? = null
+    private lateinit var imageClassifierHelper: ImageClassifierHelper
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
+        imageClassifierHelper = ImageClassifierHelper(
+            context = this,
+            classifierListener = object : ImageClassifierHelper.ClassifierListener {
+                override fun onError(error: String) {
+                    showToast(error)
+                }
+
+                override fun onResults(results: List<Classifications>?, inferenceTime: Long) {
+                    // TODO: Tampilkan hasil klasifikasi
+                    results?.let {
+                        val topResult = it.firstOrNull()?.categories?.maxByOrNull { category -> category.score }
+                        topResult?.let { result ->
+                            moveToResult(result.label, result.score, currentImageUri!!)
+                        }
+                    }
+                }
+            }
+        )
+
         binding.galleryButton.setOnClickListener { startGallery() }
+        binding.analyzeButton.setOnClickListener { analyzeImage() }
     }
 
     private fun startGallery() {
@@ -49,10 +73,17 @@ class MainActivity : AppCompatActivity() {
 
     private fun analyzeImage() {
         // TODO: Menganalisa gambar yang berhasil ditampilkan.
+        currentImageUri?.let { uri ->
+            imageClassifierHelper.classifyStaticImage(uri)
+        } ?: showToast(getString(R.string.empty_image_warning))
     }
 
-    private fun moveToResult() {
-        val intent = Intent(this, ResultActivity::class.java)
+    private fun moveToResult(prediction: String, confidenceScore: Float, imageUri: Uri) {
+        val intent = Intent(this, ResultActivity::class.java).apply {
+            putExtra("PREDICTION", prediction)
+            putExtra("CONFIDENCE_SCORE", confidenceScore)
+            putExtra("IMAGE_URI", imageUri.toString())
+        }
         startActivity(intent)
     }
 
