@@ -1,10 +1,11 @@
-package com.dicoding.asclepius.data
+package com.dicoding.asclepius.data.repository
 
 import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.liveData
 import androidx.lifecycle.map
 import com.dicoding.asclepius.BuildConfig
+import com.dicoding.asclepius.data.Result
 import com.dicoding.asclepius.data.local.entity.NewsEntity
 import com.dicoding.asclepius.data.local.room.NewsDao
 import com.dicoding.asclepius.data.remote.retrofit.ApiService
@@ -33,7 +34,11 @@ class NewsRepository private constructor(
             Log.d("NewsRepository", "getHeadlineNews: ${e.message.toString()} ")
             emit(Result.Error(e.message.toString()))
         }
-        val localData: LiveData<Result<List<NewsEntity>>> = newsDao.getNews().map { Result.Success(it) }
+        val localData: LiveData<Result<List<NewsEntity>>> = newsDao.getNews().map {
+            Result.Success(
+                it
+            )
+        }
         emitSource(localData)
     }
 

@@ -1,11 +1,9 @@
 package com.dicoding.asclepius
 
 import android.app.Application
-import android.os.Bundle
 import android.util.Log
-import androidx.appcompat.app.AppCompatActivity
-import com.dicoding.asclepius.data.NewsRepository
-import com.dicoding.asclepius.data.local.room.NewsDatabase
+import com.dicoding.asclepius.data.repository.NewsRepository
+import com.dicoding.asclepius.data.local.room.Databases
 import com.dicoding.asclepius.data.remote.retrofit.ApiConfig
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -16,7 +14,7 @@ class MyApplication : Application() {
 
     override fun onCreate() {
         super.onCreate()
-        val newsDao = NewsDatabase.getInstance(this).newsDao()
+        val newsDao = Databases.getInstance(this).newsDao()
         val apiService = ApiConfig.getApiService()
         val newsRepository = NewsRepository.getInstance(apiService, newsDao)
 

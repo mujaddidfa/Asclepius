@@ -1,13 +1,15 @@
 package com.dicoding.asclepius.view.ui.history
 
 import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import com.dicoding.asclepius.data.repository.HistoryRepository
+import com.dicoding.asclepius.data.local.entity.HistoryEntity
 
-class HistoryViewModel : ViewModel() {
+class HistoryViewModel(private val repository: HistoryRepository) : ViewModel() {
 
-    private val _text = MutableLiveData<String>().apply {
-        value = "This is notifications Fragment"
+    val history: LiveData<List<HistoryEntity>> = repository.getAllHistory()
+
+    suspend fun clearHistory() {
+        repository.clearHistory()
     }
-    val text: LiveData<String> = _text
 }

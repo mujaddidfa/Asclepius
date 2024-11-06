@@ -20,6 +20,7 @@ import com.dicoding.asclepius.R
 import com.dicoding.asclepius.databinding.FragmentHomeBinding
 import com.dicoding.asclepius.helper.ImageClassifierHelper
 import com.dicoding.asclepius.utils.getImageUri
+import com.dicoding.asclepius.utils.generateUniqueFileName
 import com.dicoding.asclepius.view.MainViewModel
 import com.dicoding.asclepius.view.ResultActivity
 import com.yalantis.ucrop.UCrop
@@ -111,7 +112,8 @@ class HomeFragment : Fragment() {
     }
 
     private fun startCrop(uri: Uri) {
-        val destinationUri = Uri.fromFile(File(requireContext().cacheDir, "croppedImage.jpg"))
+        val uniqueFileName = generateUniqueFileName()
+        val destinationUri = Uri.fromFile(File(requireContext().cacheDir, uniqueFileName))
         val options = UCrop.Options().apply {
             setFreeStyleCropEnabled(true)
             setHideBottomControls(false)

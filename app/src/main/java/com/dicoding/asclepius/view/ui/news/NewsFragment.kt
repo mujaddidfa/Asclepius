@@ -11,8 +11,8 @@ import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.recyclerview.widget.LinearLayoutManager
-import com.dicoding.asclepius.data.NewsRepository
-import com.dicoding.asclepius.data.local.room.NewsDatabase
+import com.dicoding.asclepius.data.repository.NewsRepository
+import com.dicoding.asclepius.data.local.room.Databases
 import com.dicoding.asclepius.data.remote.retrofit.ApiConfig
 import com.dicoding.asclepius.data.Result
 import com.dicoding.asclepius.data.remote.response.ArticlesItem
@@ -25,9 +25,10 @@ class NewsFragment : Fragment() {
     private val binding get() = _binding ?: throw IllegalStateException("View binding is only valid between onCreateView and onDestroyView")
 
     private val newsViewModel: NewsViewModel by viewModels {
-        ViewModelFactory(NewsRepository.getInstance(
+        ViewModelFactory(
+            NewsRepository.getInstance(
             ApiConfig.getApiService(),
-            NewsDatabase.getInstance(requireContext()).newsDao()
+            Databases.getInstance(requireContext()).newsDao()
         ))
     }
 

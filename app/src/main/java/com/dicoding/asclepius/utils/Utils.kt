@@ -12,6 +12,7 @@ import java.io.File
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import java.util.UUID
 
 private const val FILENAME_FORMAT = "yyyyMMdd_HHmmss"
 private val timeStamp: String = SimpleDateFormat(FILENAME_FORMAT, Locale.US).format(Date())
@@ -41,4 +42,9 @@ private fun getImageUriForPreQ(context: Context): Uri {
         "${BuildConfig.APPLICATION_ID}.fileprovider",
         imageFile
     )
+}
+
+fun generateUniqueFileName(): String {
+    val timeStamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())
+    return "croppedImage_${timeStamp}_${UUID.randomUUID()}.jpg"
 }

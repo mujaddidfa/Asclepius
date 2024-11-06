@@ -3,7 +3,7 @@ package com.dicoding.asclepius.view
 import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
-import com.dicoding.asclepius.data.NewsRepository
+import com.dicoding.asclepius.data.repository.NewsRepository
 import com.dicoding.asclepius.di.Injection
 import com.dicoding.asclepius.view.ui.news.NewsViewModel
 
