@@ -17,6 +17,7 @@ import com.dicoding.asclepius.databinding.ActivityMainBinding
 import com.dicoding.asclepius.helper.ImageClassifierHelper
 import com.dicoding.asclepius.utils.getImageUri
 import com.yalantis.ucrop.UCrop
+import com.yalantis.ucrop.UCropActivity
 import org.tensorflow.lite.task.vision.classifier.Classifications
 import java.io.File
 
@@ -97,7 +98,8 @@ class MainActivity : AppCompatActivity() {
         val destinationUri = Uri.fromFile(File(cacheDir, "croppedImage.jpg"))
         val options = UCrop.Options().apply {
             setFreeStyleCropEnabled(true)
-            setHideBottomControls(true)
+            setHideBottomControls(false)
+            setAllowedGestures(UCropActivity.ALL, UCropActivity.ALL, UCropActivity.ALL)
         }
         UCrop.of(uri, destinationUri)
             .withOptions(options)
