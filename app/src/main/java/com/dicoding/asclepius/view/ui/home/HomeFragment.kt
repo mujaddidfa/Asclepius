@@ -1,28 +1,37 @@
-package com.dicoding.asclepius.view
+package com.dicoding.asclepius.view.ui.home
 
 import android.Manifest
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
+import android.view.LayoutInflater
+import android.view.View
+import android.view.ViewGroup
 import android.widget.Toast
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.activity.viewModels
+import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
+import androidx.fragment.app.Fragment
+import androidx.fragment.app.viewModels
 import com.dicoding.asclepius.R
-import com.dicoding.asclepius.databinding.ActivityMainBinding
+import com.dicoding.asclepius.databinding.FragmentHomeBinding
 import com.dicoding.asclepius.helper.ImageClassifierHelper
 import com.dicoding.asclepius.utils.getImageUri
+import com.dicoding.asclepius.view.MainViewModel
+import com.dicoding.asclepius.view.ResultActivity
 import com.yalantis.ucrop.UCrop
 import com.yalantis.ucrop.UCropActivity
 import org.tensorflow.lite.task.vision.classifier.Classifications
 import java.io.File
 
-class MainActivity : AppCompatActivity() {
-    private lateinit var binding: ActivityMainBinding
+@Suppress("DEPRECATION")
+class HomeFragment : Fragment() {
+
+    private var _binding: FragmentHomeBinding? = null
+    private val binding get() = _binding!!
     private val viewModel: MainViewModel by viewModels()
 
     private lateinit var imageClassifierHelper: ImageClassifierHelper
@@ -32,29 +41,36 @@ class MainActivity : AppCompatActivity() {
             ActivityResultContracts.RequestPermission()
         ) { isGranted: Boolean ->
             if (isGranted) {
-                Toast.makeText(this, "Permission request granted", Toast.LENGTH_LONG).show()
+                Toast.makeText(requireContext(), "Permission request granted", Toast.LENGTH_LONG).show()
             } else {
-                Toast.makeText(this, "Permission request denied", Toast.LENGTH_LONG).show()
+                Toast.makeText(requireContext(), "Permission request denied", Toast.LENGTH_LONG).show()
             }
         }
 
     private fun allPermissionsGranted() =
         ContextCompat.checkSelfPermission(
-            this,
+            requireContext(),
             REQUIRED_PERMISSION
         ) == PackageManager.PERMISSION_GRANTED
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        binding = ActivityMainBinding.inflate(layoutInflater)
-        setContentView(binding.root)
+    override fun onCreateView(
+        inflater: LayoutInflater,
+        container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View {
+        _binding = FragmentHomeBinding.inflate(inflater, container, false)
+        return binding.root
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
 
         if (!allPermissionsGranted()) {
             requestPermissionLauncher.launch(REQUIRED_PERMISSION)
         }
 
         imageClassifierHelper = ImageClassifierHelper(
-            context = this,
+            context = requireContext(),
             classifierListener = object : ImageClassifierHelper.ClassifierListener {
                 override fun onError(error: String) {
                     showToast(error)
@@ -75,7 +91,7 @@ class MainActivity : AppCompatActivity() {
         binding.cameraButton.setOnClickListener { startCamera() }
         binding.analyzeButton.setOnClickListener { analyzeImage() }
 
-        viewModel.currentImageUri.observe(this) { uri ->
+        viewModel.currentImageUri.observe(viewLifecycleOwner) { uri ->
             uri?.let { showImage(it) }
         }
     }
@@ -95,7 +111,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun startCrop(uri: Uri) {
-        val destinationUri = Uri.fromFile(File(cacheDir, "croppedImage.jpg"))
+        val destinationUri = Uri.fromFile(File(requireContext().cacheDir, "croppedImage.jpg"))
         val options = UCrop.Options().apply {
             setFreeStyleCropEnabled(true)
             setHideBottomControls(false)
@@ -105,13 +121,13 @@ class MainActivity : AppCompatActivity() {
             .withOptions(options)
             .withAspectRatio(1f, 1f)
             .withMaxResultSize(1080, 1080)
-            .start(this)
+            .start(requireContext(), this)
     }
 
     @Deprecated("Deprecated in Java")
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
-        if (resultCode == RESULT_OK && requestCode == UCrop.REQUEST_CROP) {
+        if (resultCode == AppCompatActivity.RESULT_OK && requestCode == UCrop.REQUEST_CROP) {
             val resultUri = UCrop.getOutput(data!!)
             resultUri?.let {
                 viewModel.setCurrentImageUri(it)
@@ -123,7 +139,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun startCamera() {
-        val uri = getImageUri(this)
+        val uri = getImageUri(requireContext())
         viewModel.setCurrentImageUri(uri)
         launcherIntentCamera.launch(uri)
     }
@@ -148,7 +164,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun moveToResult(prediction: String, confidenceScore: Float, imageUri: Uri) {
-        val intent = Intent(this, ResultActivity::class.java).apply {
+        val intent = Intent(requireContext(), ResultActivity::class.java).apply {
             putExtra("PREDICTION", prediction)
             putExtra("CONFIDENCE_SCORE", confidenceScore)
             putExtra("IMAGE_URI", imageUri.toString())
@@ -157,7 +173,12 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun showToast(message: String) {
-        Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
+        Toast.makeText(requireContext(), message, Toast.LENGTH_SHORT).show()
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        _binding = null
     }
 
     companion object {
