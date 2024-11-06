@@ -8,16 +8,16 @@ import androidx.navigation.ui.AppBarConfiguration
 import androidx.navigation.ui.setupActionBarWithNavController
 import androidx.navigation.ui.setupWithNavController
 import com.dicoding.asclepius.R
-import com.dicoding.asclepius.databinding.ActivityMyApplicationBinding
+import com.dicoding.asclepius.databinding.ActivityMainBinding
 
-class MyApplication : AppCompatActivity() {
+class MainActivity : AppCompatActivity() {
 
-    private lateinit var binding: ActivityMyApplicationBinding
+    private lateinit var binding: ActivityMainBinding
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        binding = ActivityMyApplicationBinding.inflate(layoutInflater)
+        binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
         setSupportActionBar(binding.toolbar)
