@@ -10,6 +10,7 @@ import android.util.Log
 import android.widget.Toast
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.activity.viewModels
 import androidx.core.content.ContextCompat
 import com.dicoding.asclepius.R
 import com.dicoding.asclepius.databinding.ActivityMainBinding
@@ -21,8 +22,8 @@ import java.io.File
 
 class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding
+    private val viewModel: MainViewModel by viewModels()
 
-    private var currentImageUri: Uri? = null
     private lateinit var imageClassifierHelper: ImageClassifierHelper
 
     private val requestPermissionLauncher =
@@ -47,14 +48,6 @@ class MainActivity : AppCompatActivity() {
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        if (savedInstanceState != null) {
-            val uriString = savedInstanceState.getString("currentImageUri")
-            if (uriString != null) {
-                currentImageUri = Uri.parse(uriString)
-                showImage()
-            }
-        }
-
         if (!allPermissionsGranted()) {
             requestPermissionLauncher.launch(REQUIRED_PERMISSION)
         }
@@ -70,7 +63,7 @@ class MainActivity : AppCompatActivity() {
                     results?.let {
                         val topResult = it.firstOrNull()?.categories?.maxByOrNull { category -> category.score }
                         topResult?.let { result ->
-                            moveToResult(result.label, result.score, currentImageUri!!)
+                            moveToResult(result.label, result.score, viewModel.currentImageUri.value!!)
                         }
                     }
                 }
@@ -80,12 +73,9 @@ class MainActivity : AppCompatActivity() {
         binding.galleryButton.setOnClickListener { startGallery() }
         binding.cameraButton.setOnClickListener { startCamera() }
         binding.analyzeButton.setOnClickListener { analyzeImage() }
-    }
 
-    override fun onSaveInstanceState(outState: Bundle) {
-        super.onSaveInstanceState(outState)
-        currentImageUri?.let {
-            outState.putString("currentImageUri", it.toString())
+        viewModel.currentImageUri.observe(this) { uri ->
+            uri?.let { showImage(it) }
         }
     }
 
@@ -122,8 +112,7 @@ class MainActivity : AppCompatActivity() {
         if (resultCode == RESULT_OK && requestCode == UCrop.REQUEST_CROP) {
             val resultUri = UCrop.getOutput(data!!)
             resultUri?.let {
-                currentImageUri = it
-                showImage()
+                viewModel.setCurrentImageUri(it)
             }
         } else if (resultCode == UCrop.RESULT_ERROR) {
             val cropError = UCrop.getError(data!!)
@@ -132,27 +121,26 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun startCamera() {
-        currentImageUri = getImageUri(this)
-        launcherIntentCamera.launch(currentImageUri)
+        val uri = getImageUri(this)
+        viewModel.setCurrentImageUri(uri)
+        launcherIntentCamera.launch(uri)
     }
 
     private val launcherIntentCamera = registerForActivityResult(
         ActivityResultContracts.TakePicture()
     ) { isSuccess ->
         if (isSuccess) {
-            showImage()
+            viewModel.currentImageUri.value?.let { showImage(it) }
         }
     }
 
-    private fun showImage() {
-        currentImageUri?.let {
-            Log.d("Image URI", "showImage: $it")
-            binding.previewImageView.setImageURI(it)
-        }
+    private fun showImage(uri: Uri) {
+        Log.d("Image URI", "showImage: $uri")
+        binding.previewImageView.setImageURI(uri)
     }
 
     private fun analyzeImage() {
-        currentImageUri?.let { uri ->
+        viewModel.currentImageUri.value?.let { uri ->
             imageClassifierHelper.classifyStaticImage(uri)
         } ?: showToast(getString(R.string.empty_image_warning))
     }
@@ -168,11 +156,6 @@ class MainActivity : AppCompatActivity() {
 
     private fun showToast(message: String) {
         Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
-    }
-
-    override fun onResume() {
-        super.onResume()
-        showImage()
     }
 
     companion object {
